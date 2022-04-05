@@ -1,12 +1,18 @@
 import os.path
+import threading
 import time
 import turtle
 import random
 
 # variables
+from os import path
+
+import self as self
+
 speed = 10
 lives = 3
 score = 0
+HIGHSCOREFILE = "highscore.txt"
 
 # window/screen settings
 window = turtle.Screen()
@@ -28,7 +34,8 @@ pacman.direction = 'stop'
 ghosts = []  # making ghosts list
 for x in range(10):  # for loop to create 10 ghosts turtles
     ghost = turtle.Turtle()
-    ghost.shape(os.path.expanduser("/Users/mac/Documents/pacman/ghost2.gif"))  # connecting the gif with the shape of the turtle
+    ghost.shape(
+        os.path.expanduser("/Users/mac/Documents/pacman/ghost2.gif"))  # connecting the gif with the shape of the turtle
     ghost.penup()
     ghost.speed = 4
     x = random.randint(-380, 380)
@@ -36,14 +43,28 @@ for x in range(10):  # for loop to create 10 ghosts turtles
     ghost.setposition(x, y)
     ghosts.append(ghost)
 
-#text score
+
+#reading the HighScore from a file
+def getHighScore():
+    with open(HIGHSCOREFILE, 'r') as f:
+        return f.read()
+
+#Initializing highscore with the highscore from the file
+try:
+    highscore = int(getHighScore())
+except:
+    highscore = 0
+    print("Couldn't read from the file")
+
+
+# text score
 pen = turtle.Turtle()
 pen.speed(0)
 pen.color('green')
 pen.penup()
-pen.goto(0, 320) #setting the text on top of the screen
+pen.goto(0, 320)  # setting the text on top of the screen
 pen.pendown()
-pen.write('Score: {}   Lives: {}'.format(score, lives), align='center', font=('ArcadeClassic', 36))
+pen.write('Score: {}   Lives: {} Highscore: {}'.format(score, lives, highscore), align='center', font=('ArcadeClassic', 30))
 pen.hideturtle()
 
 # food
@@ -112,6 +133,8 @@ def ghostMovement():
         ghost.setx(x)
 
 
+
+
 # set window binding
 
 window.listen()
@@ -128,7 +151,7 @@ while True:
     if pacman.xcor() > 400 or pacman.xcor() < -400 or pacman.ycor() > 400 or pacman.ycor() < -400:
         lives -= 1
         pen.clear()
-        pen.write('Score: {}   Lives: {}'.format(score, lives), align='center', font=('ArcadeClassic', 36))
+        pen.write('Score: {}   Lives: {} Highscore: {}'.format(score, lives, highscore), align='center', font=('ArcadeClassic', 30))
         time.sleep(1)
         pacman.goto(0, 0)
 
@@ -137,7 +160,8 @@ while True:
         if pacman.distance(food) < 10:
             score += 1
             pen.clear()
-            pen.write('Score: {}   Lives: {}'.format(score, lives), align='center', font=('ArcadeClassic', 36))
+            pen.write('Score: {}   Lives: {} highest score: {}'.format(score, lives, highscore), align='center',
+                      font=('ArcadeClassic', 30))
             x = random.randint(-380, 380)
             y = random.randint(-380, 380)
             food.goto(x, y)
@@ -150,7 +174,8 @@ while True:
         pen.goto(0, 0)
         pen.color('red')
         pen.penup()
-        pen.write(' Game Over \nyour score: {}'.format(score), align='center', font=('ArcadeClassic', 50))
+        pen.write(' Game Over \nyour score: {}\nhighest score: {}'.format(score, highscore), align='center',
+                  font=('ArcadeClassic', 50))
     else:
         ghostMovement()
         movement()
@@ -163,12 +188,18 @@ while True:
             ghost.goto(x, y)
             ghostMovement()
 
+    # checking highscore
+    if highscore < score:
+        highscore = score
+    with open(HIGHSCOREFILE, 'w') as f:
+        f.write(str(highscore))
+
     # ghosts and pacman
     for ghost in ghosts:
         if pacman.distance(ghost) < 15:  # checks if the distance between a ghost and pacman less than 15 pixels
             lives -= 1  # loses one life
             pen.clear()
-            pen.write('Score: {}   Lives: {}'.format(score, lives), align='center', font=('ArcadeClassic', 36))
+            pen.write('Score: {}   Lives: {}, Highscore: {}'.format(score, lives, highscore), align='center', font=('ArcadeClassic', 36))
             x = random.randint(-380, 380)
             y = random.randint(-380, 380)
             pacman.goto(x, y)  # random respawn
